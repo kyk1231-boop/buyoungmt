@@ -1,0 +1,11 @@
+# OneDrive / 윈도우 탐색기가 만드는 부산물
+desktop.ini
+Thumbs.db
+ehthumbs.db
+*.tmp
+
+# 오피스 임시 파일
+~$*
+
+# macOS
+.DS_Store
