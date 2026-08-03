@@ -84,9 +84,17 @@ body {
   text-wrap: balance;
 }
 /* 한글은 라틴보다 글자 높이가 커서 행간을 조금 더 줍니다 */
-.h-hero { font-weight: 800; line-height: 1.18; }
-.h-sec  { font-weight: 800; line-height: 1.3; }
-.h-page { font-weight: 800; line-height: 1.2; }
+.h-hero { font-weight: 800; }
+.h-sec  { font-weight: 800; }
+.h-page { font-weight: 800; }
+
+/* Tailwind 의 text-3xl·text-5xl 같은 유틸리티는 글자 크기와 함께 고정 행간을
+   얹는다. md 이상에서 text-[2.7rem] 로 글자만 키우면 행간이 그대로 남아
+   줄이 서로 붙어버린다(43px 글자에 36px 행간). :not() 으로 우선순위를 올려
+   막되, leading-* 을 직접 지정한 요소는 그 값을 그대로 존중한다. */
+.h-hero:not([class*="leading-"]) { line-height: 1.18; }
+.h-sec:not([class*="leading-"])  { line-height: 1.34; }
+.h-page:not([class*="leading-"]) { line-height: 1.22; }
 
 p { text-wrap: pretty; }
 .prose-w { max-width: 62ch; }
