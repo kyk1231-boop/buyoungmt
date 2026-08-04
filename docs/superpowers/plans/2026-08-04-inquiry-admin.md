@@ -1429,6 +1429,20 @@ tailwind.config = {
     </div>
   </header>
 
+  <!-- 비밀번호 변경 -->
+  <form id="pwForm" class="hidden bg-white rounded-xl border border-line p-6 mb-6 max-w-md">
+    <h2 class="font-extrabold mb-4">비밀번호 변경</h2>
+    <label class="block text-[14px] font-bold mb-2" for="pwCurrent">현재 비밀번호</label>
+    <input id="pwCurrent" type="password" class="input mb-4" autocomplete="current-password" required>
+    <label class="block text-[14px] font-bold mb-2" for="pwNext">새 비밀번호 (8자 이상)</label>
+    <input id="pwNext" type="password" class="input mb-4" autocomplete="new-password" minlength="8" required>
+    <p id="pwMessage" class="hidden text-[14px] font-semibold mb-4"></p>
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary !py-3">변경</button>
+      <button type="button" id="pwCancel" class="btn btn-outline !py-3">취소</button>
+    </div>
+  </form>
+
   <nav class="flex flex-wrap gap-2 mb-6" id="filters">
     <button class="badge" data-filter="all">전체</button>
     <button class="badge" data-filter="new">신규 <span id="newCount"></span></button>
@@ -1606,15 +1620,41 @@ tailwind.config = {
     fetch('/api/admin/logout', { method: 'POST' }).then(showLogin);
   });
 
+  var pwForm = document.getElementById('pwForm');
+  var pwMessage = document.getElementById('pwMessage');
+
+  function showPwMessage(text, ok) {
+    pwMessage.textContent = text;
+    pwMessage.className = 'text-[14px] font-semibold mb-4 ' + (ok ? 'text-brand' : 'text-ink');
+  }
+
   document.getElementById('pwBtn').addEventListener('click', function () {
-    var current = prompt('현재 비밀번호');
-    if (!current) return;
-    var next = prompt('새 비밀번호 (8자 이상)');
-    if (!next) return;
+    pwForm.classList.toggle('hidden');
+    pwMessage.classList.add('hidden');
+    if (!pwForm.classList.contains('hidden')) document.getElementById('pwCurrent').focus();
+  });
+
+  document.getElementById('pwCancel').addEventListener('click', function () {
+    pwForm.reset();
+    pwForm.classList.add('hidden');
+  });
+
+  pwForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var current = document.getElementById('pwCurrent').value;
+    var next = document.getElementById('pwNext').value;
     api('/api/admin/password', { method: 'POST', body: JSON.stringify({ current: current, next: next }) })
-      .then(function () { alert('비밀번호를 변경했습니다.'); })
+      .then(function () {
+        pwForm.reset();
+        showPwMessage('비밀번호를 변경했습니다.', true);
+      })
       .catch(function (status) {
-        alert(status === 400 ? '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.' : '현재 비밀번호가 맞지 않습니다.');
+        showPwMessage(
+          status === 400
+            ? '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.'
+            : '현재 비밀번호가 맞지 않습니다.',
+          false
+        );
       });
   });
 
