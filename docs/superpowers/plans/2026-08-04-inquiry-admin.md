@@ -1160,7 +1160,7 @@ export default async function handler(req, res) {
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
 Run: `npm test`
-Expected: PASS — 29 tests
+Expected: PASS — 이 작업이 추가한 5개를 포함해 전부 통과. 검토 과정에서 테스트가 추가되므로 총계는 늘어날 수 있다. 중요한 것은 fail 0 이다
 
 - [ ] **Step 5: 커밋**
 
@@ -1323,7 +1323,7 @@ export default async function handler(req, res) {
 - [ ] **Step 4: 테스트가 여전히 통과하는지 확인한다**
 
 Run: `npm test`
-Expected: PASS — 29 tests (이 작업은 기존 테스트를 깨뜨리지 않아야 한다)
+Expected: PASS — fail 0. 이 작업은 테스트를 추가하지 않으며, 기존 테스트를 하나도 깨뜨리지 않아야 한다
 
 - [ ] **Step 5: 커밋**
 
