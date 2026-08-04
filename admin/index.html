@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>견적문의 관리 | (주)부영미트</title>
+<link rel="icon" href="/images/logo-mark.png" type="image/png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      brand: { DEFAULT:'#1555A2', deep:'#0E3E79', soft:'#2069BE', tint:'#EAF2FA' },
+      ink:   { DEFAULT:'#101720', soft:'#3D4A57', mute:'#6B7885' },
+      paper: { DEFAULT:'#F8FAFC' },
+      line:  '#DCE3EA'
+    },
+    fontFamily: { sans: ['"Pretendard Variable"','Pretendard','-apple-system','sans-serif'] }
+  }}
+}
+</script>
+<link rel="stylesheet" href="/assets/site.css?v=7">
+</head>
+<body class="font-sans bg-paper text-ink">
+
+<!-- 로그인 -->
+<section id="loginView" class="min-h-screen flex items-center justify-center px-5">
+  <form id="loginForm" class="w-full max-w-sm bg-white rounded-2xl border border-line p-8">
+    <img src="/images/logo.png" alt="(주)부영미트" class="h-7 mb-7">
+    <h1 class="text-xl font-extrabold mb-6">견적문의 관리</h1>
+    <label class="block text-[14px] font-bold mb-2" for="pw">비밀번호</label>
+    <input id="pw" type="password" class="input mb-4" autocomplete="current-password" required>
+    <p id="loginError" class="hidden text-[14px] text-brand font-semibold mb-4"></p>
+    <button type="submit" class="btn btn-primary w-full !py-3.5">들어가기</button>
+  </form>
+</section>
+
+<!-- 목록 -->
+<section id="listView" class="hidden max-w-[1100px] mx-auto px-5 py-8">
+  <header class="flex items-center justify-between mb-7">
+    <div class="flex items-center gap-3">
+      <img src="/images/logo.png" alt="(주)부영미트" class="h-6">
+      <h1 class="text-lg font-extrabold">견적문의</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="pwBtn" class="btn btn-outline !py-2 !px-3.5 text-[13px]">비밀번호 변경</button>
+      <button id="logoutBtn" class="btn btn-outline !py-2 !px-3.5 text-[13px]">나가기</button>
+    </div>
+  </header>
+
+  <!-- 비밀번호 변경 -->
+  <form id="pwForm" class="hidden bg-white rounded-xl border border-line p-6 mb-6 max-w-md">
+    <h2 class="font-extrabold mb-4">비밀번호 변경</h2>
+    <label class="block text-[14px] font-bold mb-2" for="pwCurrent">현재 비밀번호</label>
+    <input id="pwCurrent" type="password" class="input mb-4" autocomplete="current-password" required>
+    <label class="block text-[14px] font-bold mb-2" for="pwNext">새 비밀번호 (8자 이상)</label>
+    <input id="pwNext" type="password" class="input mb-4" autocomplete="new-password" minlength="8" required>
+    <p id="pwMessage" class="hidden text-[14px] font-semibold mb-4"></p>
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary !py-3">변경</button>
+      <button type="button" id="pwCancel" class="btn btn-outline !py-3">취소</button>
+    </div>
+  </form>
+
+  <nav class="flex flex-wrap gap-2 mb-6" id="filters">
+    <button class="badge badge-solid" data-filter="all">전체</button>
+    <button class="badge" data-filter="new">신규 <span id="newCount"></span></button>
+    <button class="badge" data-filter="contacted">연락함</button>
+    <button class="badge" data-filter="quoted">견적발송</button>
+    <button class="badge" data-filter="closed">종료</button>
+  </nav>
+
+  <p id="empty" class="hidden text-ink-mute py-16 text-center">해당하는 문의가 없습니다.</p>
+  <div id="list" class="grid gap-3"></div>
+</section>
+
+<script src="/admin/admin.js"></script>
+</body>
+</html>

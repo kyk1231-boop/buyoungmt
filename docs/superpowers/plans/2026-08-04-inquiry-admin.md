@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - **npm 의존성 0개.** Node 내장 모듈과 `fetch`만 쓴다. 빌드 도구를 도입하지 않는다
+- 테스트는 `npm test`(= `node --test`)로 돌린다. Node 24 에서는 `node --test tests/` 처럼 디렉터리를 인자로 주면 동작하지 않으므로 인자 없이 쓴다
 - 개인정보는 Supabase 서울 리전에만 저장한다
 - 브라우저에서 데이터베이스에 직접 접근하지 않는다. 서비스 키는 서버 환경변수에만 둔다
 - 저장이 확인된 경우에만 방문자에게 완료를 표시한다
@@ -53,7 +54,7 @@
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test"
   }
 }
 ```
@@ -1159,7 +1160,7 @@ export default async function handler(req, res) {
 - [ ] **Step 4: 테스트를 돌려 통과를 확인한다**
 
 Run: `npm test`
-Expected: PASS — 29 tests
+Expected: PASS — 이 작업이 추가한 5개를 포함해 전부 통과. 검토 과정에서 테스트가 추가되므로 총계는 늘어날 수 있다. 중요한 것은 fail 0 이다
 
 - [ ] **Step 5: 커밋**
 
@@ -1322,7 +1323,7 @@ export default async function handler(req, res) {
 - [ ] **Step 4: 테스트가 여전히 통과하는지 확인한다**
 
 Run: `npm test`
-Expected: PASS — 29 tests (이 작업은 기존 테스트를 깨뜨리지 않아야 한다)
+Expected: PASS — fail 0. 이 작업은 테스트를 추가하지 않으며, 기존 테스트를 하나도 깨뜨리지 않아야 한다
 
 - [ ] **Step 5: 커밋**
 
@@ -1428,6 +1429,20 @@ tailwind.config = {
       <button id="logoutBtn" class="btn btn-outline !py-2 !px-3.5 text-[13px]">나가기</button>
     </div>
   </header>
+
+  <!-- 비밀번호 변경 -->
+  <form id="pwForm" class="hidden bg-white rounded-xl border border-line p-6 mb-6 max-w-md">
+    <h2 class="font-extrabold mb-4">비밀번호 변경</h2>
+    <label class="block text-[14px] font-bold mb-2" for="pwCurrent">현재 비밀번호</label>
+    <input id="pwCurrent" type="password" class="input mb-4" autocomplete="current-password" required>
+    <label class="block text-[14px] font-bold mb-2" for="pwNext">새 비밀번호 (8자 이상)</label>
+    <input id="pwNext" type="password" class="input mb-4" autocomplete="new-password" minlength="8" required>
+    <p id="pwMessage" class="hidden text-[14px] font-semibold mb-4"></p>
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary !py-3">변경</button>
+      <button type="button" id="pwCancel" class="btn btn-outline !py-3">취소</button>
+    </div>
+  </form>
 
   <nav class="flex flex-wrap gap-2 mb-6" id="filters">
     <button class="badge" data-filter="all">전체</button>
@@ -1606,15 +1621,41 @@ tailwind.config = {
     fetch('/api/admin/logout', { method: 'POST' }).then(showLogin);
   });
 
+  var pwForm = document.getElementById('pwForm');
+  var pwMessage = document.getElementById('pwMessage');
+
+  function showPwMessage(text, ok) {
+    pwMessage.textContent = text;
+    pwMessage.className = 'text-[14px] font-semibold mb-4 ' + (ok ? 'text-brand' : 'text-ink');
+  }
+
   document.getElementById('pwBtn').addEventListener('click', function () {
-    var current = prompt('현재 비밀번호');
-    if (!current) return;
-    var next = prompt('새 비밀번호 (8자 이상)');
-    if (!next) return;
+    pwForm.classList.toggle('hidden');
+    pwMessage.classList.add('hidden');
+    if (!pwForm.classList.contains('hidden')) document.getElementById('pwCurrent').focus();
+  });
+
+  document.getElementById('pwCancel').addEventListener('click', function () {
+    pwForm.reset();
+    pwForm.classList.add('hidden');
+  });
+
+  pwForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var current = document.getElementById('pwCurrent').value;
+    var next = document.getElementById('pwNext').value;
     api('/api/admin/password', { method: 'POST', body: JSON.stringify({ current: current, next: next }) })
-      .then(function () { alert('비밀번호를 변경했습니다.'); })
+      .then(function () {
+        pwForm.reset();
+        showPwMessage('비밀번호를 변경했습니다.', true);
+      })
       .catch(function (status) {
-        alert(status === 400 ? '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.' : '현재 비밀번호가 맞지 않습니다.');
+        showPwMessage(
+          status === 400
+            ? '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.'
+            : '현재 비밀번호가 맞지 않습니다.',
+          false
+        );
       });
   });
 
