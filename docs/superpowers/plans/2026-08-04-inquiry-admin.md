@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - **npm 의존성 0개.** Node 내장 모듈과 `fetch`만 쓴다. 빌드 도구를 도입하지 않는다
+- 테스트는 `npm test`(= `node --test`)로 돌린다. Node 24 에서는 `node --test tests/` 처럼 디렉터리를 인자로 주면 동작하지 않으므로 인자 없이 쓴다
 - 개인정보는 Supabase 서울 리전에만 저장한다
 - 브라우저에서 데이터베이스에 직접 접근하지 않는다. 서비스 키는 서버 환경변수에만 둔다
 - 저장이 확인된 경우에만 방문자에게 완료를 표시한다
@@ -53,7 +54,7 @@
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test"
   }
 }
 ```
