@@ -179,7 +179,23 @@ tailwind.config = {
             <span class="text-brand font-bold">*</span> 표시는 필수 항목입니다. 정확한 단가는 물량과 스펙 확인 후 안내드립니다.
           </p>
 
+          <div id="sendError" class="hidden rounded-xl border-2 border-brand bg-brand-tint p-6 mb-7">
+            <p class="font-bold text-ink text-lg mb-2">전송에 실패했습니다</p>
+            <p class="text-ink-soft text-[15px] mb-5">
+              입력하신 내용은 그대로 남아 있습니다. 잠시 후 다시 시도하시거나,
+              아래 번호로 전화 주시면 바로 도와드리겠습니다.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <a href="tel:010-4017-1231" class="btn btn-primary tnum">010-4017-1231</a>
+              <a href="tel:010-4404-0731" class="btn btn-outline tnum">010-4404-0731</a>
+            </div>
+          </div>
+
           <form id="quoteForm" novalidate class="space-y-7">
+            <!-- 봇 차단용. 사람에게는 보이지 않는다 -->
+            <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;">
+              <label>홈페이지 주소<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
             <div class="grid sm:grid-cols-2 gap-6">
               <div data-field>
                 <label class="field-label" for="f-company">업체명 <span class="req">*</span></label>
@@ -405,6 +421,8 @@ tailwind.config = {
     return problems;
   }
 
+  var formStartedAt = Date.now();
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -421,39 +439,50 @@ tailwind.config = {
     btn.setAttribute('data-busy', 'true');
 
     var f = new FormData(form);
-    var cuts = f.getAll('cuts').join(', ') || '미선택';
-    var body = [
-      '[부영미트 홈페이지 견적 요청]',
-      '',
-      '업체명: ' + f.get('company'),
-      '업종: ' + f.get('type'),
-      '담당자: ' + f.get('name'),
-      '연락처: ' + f.get('phone'),
-      '관심 부위: ' + cuts,
-      '월 예상 물량: ' + (f.get('volume') || '미선택'),
-      '희망 포장: ' + (f.get('packing') || '미선택'),
-      '손질 요청: ' + (f.get('trim') || '미입력'),
-      '배송 지역: ' + (f.get('region') || '미입력'),
-      '샘플 신청: ' + (f.get('sample') ? '예' : '아니오'),
-      '',
-      '요청 사항:',
-      f.get('message') || '(없음)'
-    ].join('\n');
+    var payload = {
+      company: f.get('company'),
+      type: f.get('type'),
+      name: f.get('name'),
+      phone: f.get('phone'),
+      cuts: f.getAll('cuts'),
+      volume: f.get('volume'),
+      packing: f.get('packing'),
+      trim: f.get('trim'),
+      region: f.get('region'),
+      message: f.get('message'),
+      sample: !!f.get('sample'),
+      agree: !!f.get('agree'),
+      website: f.get('website') || '',
+      startedAt: formStartedAt
+    };
 
-    var href = 'mailto:siaabba@naver.com'
-      + '?subject=' + encodeURIComponent('[견적요청] ' + f.get('company'))
-      + '&body=' + encodeURIComponent(body);
-
-    window.location.href = href;
-
-    setTimeout(function () {
-      btn.removeAttribute('data-busy');
-      document.getElementById('formWrap').classList.add('hidden');
-      var panel = document.getElementById('successPanel');
-      panel.classList.remove('hidden');
-      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 700);
+    fetch('/api/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+      .then(function (data) {
+        if (!data.ok) return Promise.reject('rejected');
+        btn.removeAttribute('data-busy');
+        document.getElementById('formWrap').classList.add('hidden');
+        var panel = document.getElementById('successPanel');
+        panel.classList.remove('hidden');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+      .catch(function () {
+        btn.removeAttribute('data-busy');
+        showSendError();
+      });
   });
+
+  // 전송이 실패하면 입력 내용을 지우지 않고 전화 안내를 띄운다.
+  function showSendError() {
+    var box = document.getElementById('sendError');
+    if (!box) return;
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
   document.getElementById('resetForm').addEventListener('click', function () {
     document.getElementById('successPanel').classList.add('hidden');
