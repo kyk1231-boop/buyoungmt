@@ -195,7 +195,9 @@
       })
       .catch(function (status) {
         var text = '현재 비밀번호가 맞지 않습니다.';
-        if (status === 400) {
+        if (status === 403) {
+          text = '현재 비밀번호가 맞지 않습니다.';
+        } else if (status === 400) {
           text = '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.';
         } else if (typeof status === 'number' && status >= 500) {
           text = '서버에 문제가 있습니다. 잠시 후 다시 시도해 주세요.';

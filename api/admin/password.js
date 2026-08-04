@@ -16,7 +16,12 @@ export default async function handler(req, res) {
   const stored = await getPasswordHash();
 
   if (!stored || !verifyPassword(String(current ?? ''), stored)) {
-    res.status(401).json({ ok: false, error: 'invalid_current' });
+    // 401 은 "당신이 누구인지 모른다"는 뜻이다. 여기는 세션은 유효하고
+    // (requireSession 통과) 현재 비밀번호 입력값만 틀린 경우이므로
+    // "당신이 누구인지는 알지만 이 요청은 거절한다"는 403 이 맞다.
+    // 401 로 응답하면 api() 헬퍼가 로그인 화면으로 튕겨내 오타 한 번에
+    // 비밀번호 변경을 포기하게 만든다.
+    res.status(403).json({ ok: false, error: 'invalid_current' });
     return;
   }
 
