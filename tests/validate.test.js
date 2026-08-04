@@ -68,3 +68,11 @@ test('상태값과 처리자값을 검사한다', () => {
   assert.equal(isValidHandler(null), true);
   assert.equal(isValidHandler('누구'), false);
 });
+
+test('본문이 없거나 객체가 아니어도 예외 없이 거부한다', () => {
+  for (const body of [null, undefined, 'string', 42, ['a'], true]) {
+    const result = validateInquiry(body, { now: NOW });
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.length > 0);
+  }
+});
