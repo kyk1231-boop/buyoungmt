@@ -426,6 +426,10 @@ tailwind.config = {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
+    var btn = document.getElementById('submitBtn');
+    // 이미 전송 중이면 무시한다. 입력칸에서 Enter 를 연타해도 요청은 한 번만 나간다.
+    if (btn.hasAttribute('data-busy')) return;
+
     var problems = validate();
     if (problems.length) {
       var first = problems[0];
@@ -435,7 +439,6 @@ tailwind.config = {
       return;
     }
 
-    var btn = document.getElementById('submitBtn');
     btn.setAttribute('data-busy', 'true');
 
     var f = new FormData(form);
