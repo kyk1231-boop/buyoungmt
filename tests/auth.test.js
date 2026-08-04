@@ -63,3 +63,22 @@ test('쿠키를 만들고 읽는다', () => {
   assert.equal(readCookie(undefined), null);
   assert.ok(clearedCookie().includes('Max-Age=0'));
 });
+
+test('비밀번호 인자가 문자열이 아니면 예외 없이 거부한다', () => {
+  const stored = hashPassword('some-password');
+  for (const bad of [null, undefined, 42, {}, [], true]) {
+    assert.equal(verifyPassword(bad, stored), false);
+  }
+});
+
+test('비밀키가 없으면 예외 없이 거부한다', () => {
+  const token = createSession(SECRET, { now: NOW });
+  for (const bad of [null, undefined, '', 42]) {
+    assert.equal(verifySession(token, bad, { now: NOW }), false);
+  }
+});
+
+test('점이 두 개보다 많은 토큰은 거부한다', () => {
+  const token = createSession(SECRET, { now: NOW });
+  assert.equal(verifySession(token + '.garbage', SECRET, { now: NOW }), false);
+});
