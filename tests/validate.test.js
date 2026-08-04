@@ -10,7 +10,7 @@ function form(extra = {}) {
     name: '홍길동',
     phone: '010-1234-5678',
     agree: true,
-    startedAt: NOW - 10000,
+    elapsedMs: 10000,
     ...extra,
   };
 }
@@ -50,9 +50,23 @@ test('함정 칸이 채워지면 스팸으로 본다', () => {
 });
 
 test('3초 안에 제출되면 봇으로 본다', () => {
-  const result = validateInquiry(form({ startedAt: NOW - 500 }), { now: NOW });
+  const result = validateInquiry(form({ elapsedMs: 500 }), { now: NOW });
   assert.equal(result.ok, false);
   assert.ok(result.errors.includes('too_fast'));
+});
+
+test('경과시간이 없거나 이상해도 봇으로 본다', () => {
+  for (const bad of [undefined, null, 'abc', -1000, NaN]) {
+    const result = validateInquiry(form({ elapsedMs: bad }), { now: NOW });
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.includes('too_fast'));
+  }
+});
+
+test('방문자 시계가 서버보다 앞서 있어도 정상 접수된다', () => {
+  // 서버 시각보다 1분 앞선 기기에서 10초 걸려 작성한 경우
+  const result = validateInquiry(form({ elapsedMs: 10000 }), { now: NOW - 60000 });
+  assert.equal(result.ok, true);
 });
 
 test('긴 입력은 잘라낸다', () => {

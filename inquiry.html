@@ -292,7 +292,7 @@ tailwind.config = {
                   <input type="checkbox" id="f-agree" name="agree" class="check mt-0.5">
                   <span>
                     견적 상담 목적의 개인정보(업체명, 성함, 연락처) 수집·이용에 동의합니다.
-                    수집된 정보는 상담 완료 후 파기됩니다. <span class="text-brand font-bold">*</span>
+                    수집된 정보는 상담 이력 관리를 위해 보관되며, 삭제를 요청하시면 지체 없이 파기합니다. <span class="text-brand font-bold">*</span>
                     <a href="privacy.html" class="underline underline-offset-2 hover:text-brand ml-1">자세히</a>
                   </span>
                 </label>
@@ -440,6 +440,7 @@ tailwind.config = {
     }
 
     btn.setAttribute('data-busy', 'true');
+    hideSendError();
 
     var f = new FormData(form);
     var payload = {
@@ -456,7 +457,7 @@ tailwind.config = {
       sample: !!f.get('sample'),
       agree: !!f.get('agree'),
       website: f.get('website') || '',
-      startedAt: formStartedAt
+      elapsedMs: Date.now() - formStartedAt
     };
 
     fetch('/api/inquiry', {
@@ -468,6 +469,7 @@ tailwind.config = {
       .then(function (data) {
         if (!data.ok) return Promise.reject('rejected');
         btn.removeAttribute('data-busy');
+        hideSendError();
         document.getElementById('formWrap').classList.add('hidden');
         var panel = document.getElementById('successPanel');
         panel.classList.remove('hidden');
@@ -485,6 +487,14 @@ tailwind.config = {
     if (!box) return;
     box.classList.remove('hidden');
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // 제출을 다시 시작하거나 성공했을 때는 이전 실패 안내를 지워, 빈 폼이나
+  // 성공 화면 위에 옛 오류 배너가 남지 않게 한다.
+  function hideSendError() {
+    var box = document.getElementById('sendError');
+    if (!box) return;
+    box.classList.add('hidden');
   }
 
   document.getElementById('resetForm').addEventListener('click', function () {

@@ -14,7 +14,7 @@
   function api(path, options) {
     return fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options))
       .then(function (res) {
-        if (res.status === 401) { showLogin(); return Promise.reject('unauthorized'); }
+        if (res.status === 401) { showLogin(); return Promise.reject(res.status); }
         if (!res.ok) return Promise.reject(res.status);
         return res.json();
       });
@@ -76,9 +76,9 @@
           row('요청 사항', item.message) +
         '</dl>' +
         '<div class="flex flex-wrap items-center gap-2">' +
-          '<select class="select !py-2 !text-[14px] w-auto" data-action="status">' + statusOptions + '</select>' +
-          '<select class="select !py-2 !text-[14px] w-auto" data-action="handler">' + handlerOptions + '</select>' +
-          '<button class="btn btn-outline !py-2 !px-3.5 text-[13px] ml-auto" data-action="delete">삭제</button>' +
+          '<select class="select !py-2.5 !text-[14px] !min-h-[44px] w-auto" data-action="status">' + statusOptions + '</select>' +
+          '<select class="select !py-2.5 !text-[14px] !min-h-[44px] w-auto" data-action="handler">' + handlerOptions + '</select>' +
+          '<button class="btn btn-outline !py-2.5 !px-4 !min-h-[44px] text-[13px] ml-auto border-l-2 border-line pl-4" data-action="delete">삭제</button>' +
         '</div>' +
       '</article>';
   }
@@ -96,6 +96,14 @@
     document.getElementById('newCount').textContent = n ? '(' + n + ')' : '';
   }
 
+  // 어떤 필터를 보고 있든 신규 건수는 서버에서 다시 세어 맞춘다.
+  // 목록 하나만큼의 가벼운 요청이라 체감 지연은 없다.
+  function updateNewCount() {
+    api('/api/admin/inquiries?status=new').then(function (data) {
+      countNew(data.items);
+    }).catch(function () {});
+  }
+
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var error = document.getElementById('loginError');
@@ -106,9 +114,13 @@
       body: JSON.stringify({ password: document.getElementById('pw').value })
     }).then(function (res) {
       if (res.ok) { document.getElementById('pw').value = ''; showList(); return; }
-      error.textContent = res.status === 429
-        ? '로그인 시도가 많아 잠시 잠겼습니다. 15분 후 다시 시도해 주세요.'
-        : '비밀번호가 맞지 않습니다.';
+      if (res.status >= 500) {
+        error.textContent = '서버에 문제가 있습니다. 잠시 후 다시 시도해 주세요.';
+      } else if (res.status === 429) {
+        error.textContent = '로그인 시도가 많아 잠시 잠겼습니다. 15분 후 다시 시도해 주세요.';
+      } else {
+        error.textContent = '비밀번호가 맞지 않습니다.';
+      }
       error.classList.remove('hidden');
     });
   });
@@ -117,6 +129,9 @@
     var btn = e.target.closest('[data-filter]');
     if (!btn) return;
     filter = btn.dataset.filter;
+    Array.prototype.forEach.call(document.querySelectorAll('#filters [data-filter]'), function (b) {
+      b.classList.toggle('badge-solid', b === btn);
+    });
     load();
   });
 
@@ -124,20 +139,17 @@
     var select = e.target.closest('select[data-action]');
     if (!select) return;
     var id = select.closest('[data-id]').dataset.id;
+    var action = select.dataset.action;
     var patch = {};
-    patch[select.dataset.action] = select.value;
+    patch[action] = select.value;
     api('/api/admin/inquiries/' + id, { method: 'PATCH', body: JSON.stringify(patch) })
-      .then(function () { if (filter !== 'all') load(); else countNewFromDom(); })
+      .then(function () {
+        if (filter !== 'all') load();
+        // 상태가 바뀌면 지금 어떤 필터를 보고 있든 신규 건수를 다시 맞춘다.
+        if (action === 'status') updateNewCount();
+      })
       .catch(function () { alert('저장하지 못했습니다. 다시 시도해 주세요.'); load(); });
   });
-
-  function countNewFromDom() {
-    var n = Array.prototype.filter.call(
-      list.querySelectorAll('select[data-action="status"]'),
-      function (s) { return s.value === 'new'; }
-    ).length;
-    document.getElementById('newCount').textContent = n ? '(' + n + ')' : '';
-  }
 
   list.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-action="delete"]');
@@ -182,12 +194,13 @@
         showPwMessage('비밀번호를 변경했습니다.', true);
       })
       .catch(function (status) {
-        showPwMessage(
-          status === 400
-            ? '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.'
-            : '현재 비밀번호가 맞지 않습니다.',
-          false
-        );
+        var text = '현재 비밀번호가 맞지 않습니다.';
+        if (status === 400) {
+          text = '새 비밀번호가 너무 짧습니다. 8자 이상으로 정해 주세요.';
+        } else if (typeof status === 'number' && status >= 500) {
+          text = '서버에 문제가 있습니다. 잠시 후 다시 시도해 주세요.';
+        }
+        showPwMessage(text, false);
       });
   });
 

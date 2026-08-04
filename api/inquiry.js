@@ -12,10 +12,19 @@ export default async function handler(req, res) {
   const body = await readJson(req);
   const result = validateInquiry(body);
 
-  // 봇으로 판정된 요청은 조용히 성공으로 응답한다.
+  // 함정 칸이 채워졌으면 확실한 봇이다. 조용히 성공으로 응답한다.
   // 실패를 알려주면 어디를 고쳐야 하는지 가르쳐 주는 셈이 된다.
-  if (!result.ok && (result.errors.includes('spam') || result.errors.includes('too_fast'))) {
+  if (!result.ok && result.errors.includes('spam')) {
+    console.warn('봇 차단: 함정 칸이 채워짐');
     res.status(200).json({ ok: true });
+    return;
+  }
+
+  // 너무 빠른 제출은 사람일 수도 있다(전송 실패 후 재시도 등).
+  // 성공으로 응답하면 문의가 조용히 사라지므로 실패를 알린다.
+  if (!result.ok && result.errors.includes('too_fast')) {
+    console.warn('빠른 제출 거부: 경과 ' + Number(body.elapsedMs) + 'ms');
+    res.status(400).json({ ok: false, errors: result.errors });
     return;
   }
 
