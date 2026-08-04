@@ -10,7 +10,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'DELETE') {
     try {
-      await deleteInquiry(id);
+      const removed = await deleteInquiry(id);
+      if (!removed || removed.length === 0) {
+        res.status(404).json({ ok: false, error: 'not_found' });
+        return;
+      }
       res.status(200).json({ ok: true });
     } catch (error) {
       console.error('삭제 실패', error);
@@ -47,6 +51,10 @@ export default async function handler(req, res) {
 
     try {
       const item = await updateInquiry(id, patch);
+      if (!item) {
+        res.status(404).json({ ok: false, error: 'not_found' });
+        return;
+      }
       res.status(200).json({ ok: true, item });
     } catch (error) {
       console.error('수정 실패', error);
