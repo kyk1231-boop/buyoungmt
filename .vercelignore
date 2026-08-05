@@ -1,0 +1,30 @@
+# 배포에 올리지 않는 것들. 올리면 공개 URL 로 그대로 열린다.
+
+# 문서·테스트·개발 도구
+docs
+tests
+scripts
+.superpowers
+
+# 데이터베이스 스키마. 서버는 PostgREST 로만 접근한다
+db
+
+# 이미지 생성용 소스. 실제로 쓰는 건 images/opt/*.jpg 와 로고 두 개다
+images/*.html
+
+# 사이트가 참조하지 않는 원본 PNG (opt/ 의 JPG 로 대체됨)
+images/custom-cut.png
+images/delivery-truck.png
+images/delivery.png
+images/facility-room-alt.png
+images/facility-room.png
+images/facility-workroom.png
+images/factory.png
+images/haccp-cert-2029.jpg
+images/haccp-cert.png
+images/hero-main.png
+images/product-deungsim.png
+images/product-galbi.png
+images/product-moksal.png
+images/product-samgyeop.png
+images/product-teuksu.png
